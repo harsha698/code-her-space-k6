@@ -1,5 +1,11 @@
 import http from "k6/http";
 import {check, fail} from "k6";
+import {Trend} from "k6/metrics";
+
+const trend_1 = new Trend('trend_for_method1');
+const trend_2 = new Trend('trend_for_method2');
+const trend_3 = new Trend('trend_for_method3');
+const trend_4 = new Trend('trend_for_method4');
 
 export const options = {
     scenarios: {
@@ -37,12 +43,16 @@ export const options = {
     },
     discardResponseBodies: true,
     thresholds: {
-        http_req_duration: ['p(95)<10']
+        trend_for_method1: ['p(95)<20'],
+        trend_for_method2: ['p(95)<30'],
+        trend_for_method3: ['p(95)<10'],
+        trend_for_method4: ['p(95)<40']
     }
 }
 
 export function testMethod1() {
     const response = http.get('https://reqres.in/api/users?page=2');
+    trend_1.add(response.timings.duration)
     checkStatusCode(response)
 }
 export function testMethod2() {
@@ -55,14 +65,17 @@ export function testMethod2() {
         headers: {'Content-Type': 'application/json'}
     }
     const response = http.post(url, reqBody, params);
+    trend_2.add(response.timings.duration)
     checkStatusCode(response);
 }
 export function testMethod3() {
     const response = http.get('https://reqres.in/api/users/2');
+    trend_3.add(response.timings.duration)
     checkStatusCode(response)
 }
 export function testMethod4() {
     const response = http.get('https://reqres.in/api/unknown/2');
+    trend_4.add(response.timings.duration)
     checkStatusCode(response)
 }
 
